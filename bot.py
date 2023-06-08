@@ -1,4 +1,5 @@
 import os
+import asyncio
 from telegram import Update, Bot
 from telegram.ext import Updater, MessageHandler, filters, CallbackContext
 
@@ -9,7 +10,7 @@ def forward_to_channel(update: Update, context: CallbackContext):
 
 def main():
     bot = Bot(token=os.getenv('BOT_TOKEN'))
-    updater = Updater(bot=bot, use_context=True)
+    updater = Updater(bot=bot, update_queue=asyncio.Queue())
     dp = updater.dispatcher
     dp.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), forward_to_channel))
     updater.start_polling()
