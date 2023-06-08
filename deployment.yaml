@@ -26,3 +26,5 @@ spec:
             secretKeyRef:
               name: bot-credentials
               key: CHANNEL_ID
+      imagePullSecrets:
+      - name: anbregcred
