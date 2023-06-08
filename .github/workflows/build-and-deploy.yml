@@ -1,0 +1,51 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  namespace: default
+
+jobs:
+
+  build:
+    name: Build and push docker image
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build 
+        --tag "$${{ secrets.DOCKER_REPO }}:msftalumnijobs-${{ github.run_number }}" .
+    - name: Docker login
+      run: docker login -u ${{ secrets.DOCKER_LOGIN }} -p ${{ secrets.DOCKER_TOKEN }}
+    - name: Push the Docker image
+      run: |
+          docker push ${{ secrets.DOCKER_REPO }}:msftalumnijobs-${{ github.run_number }}
+  deploy:
+    name: deploy to AKS cluster
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: deploy to cluster
+      run: |
+        mkdir .kube
+        echo "$KUBECONFIG_DATA" | base64 -d > .kube/config
+        kubectl create secret docker-registry -n ${{ env.namespace }} anbregcred \
+          --docker-server="https://index.docker.io/v1/" \
+          --docker-username="${{ secrets.DOCKER_LOGIN }}" \
+          --docker-password="${{ secrets.DOCKER_TOKEN }}" \
+          --docker-email="anton@borisov.cloud" --dry-run=client -o yaml | kubectl apply -f -
+        kubectl create secret generic bot-credentials --from-literal=BOT_TOKEN='${{ secrets.BOT_TOKEN }}' --from-literal=CHANNEL_ID='${{ secrets.CHANNEL_ID }}'
+        sed -i 's/BOT_DOCKER_IMAGE/${{ secrets.DOCKER_REPO }}:msftalumnijobs-${{ github.run_number }}/g' deployment.yaml
+        kubectl apply -f deployment.yaml
+      env:
+        KUBECONFIG: .kube/config
+        KUBECONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+    - name: verify deployment
+      run: |
+        kubectl rollout status deployment/msftalumnijobs-bot -n ${{ env.namespace }}
+      env:
+        KUBECONFIG: .kube/config

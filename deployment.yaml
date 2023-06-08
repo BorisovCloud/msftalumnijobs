@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msftalumnijobs-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msftalumnijobs-bot
+  template:
+    metadata:
+      labels:
+        app: msftalumnijobs-bot
+    spec:
+      containers:
+      - name: msftalumnijobs-bot
+        image: BOT_DOCKER_IMAGE
+        env:
+        - name: BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: bot-credentials
+              key: BOT_TOKEN
+        - name: CHANNEL_ID
+          valueFrom:
+            secretKeyRef:
+              name: bot-credentials
+              key: CHANNEL_ID
