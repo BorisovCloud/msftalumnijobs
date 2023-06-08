@@ -38,7 +38,7 @@ jobs:
           --docker-username="${{ secrets.DOCKER_LOGIN }}" \
           --docker-password="${{ secrets.DOCKER_TOKEN }}" \
           --docker-email="anton@borisov.cloud" --dry-run=client -o yaml | kubectl apply -f -
-        kubectl create secret generic bot-credentials --from-literal=BOT_TOKEN='${{ secrets.BOT_TOKEN }}' --from-literal=CHANNEL_ID='${{ secrets.CHANNEL_ID }}'
+        kubectl create secret generic bot-credentials --from-literal=BOT_TOKEN='${{ secrets.BOT_TOKEN }}' --from-literal=CHANNEL_ID='${{ secrets.CHANNEL_ID }}' --dry-run=client -o yaml | kubectl apply -f -
         sed -i 's#BOT_DOCKER_IMAGE#${{ secrets.DOCKER_REPO }}:msftalumnijobs-${{ github.run_number }}#g' deployment.yaml
         kubectl apply -f deployment.yaml
       env:
