@@ -1,6 +1,6 @@
 import os
 from telegram import Update
-from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, MessageHandler, filters, CallbackContext
 
 def forward_to_channel(update: Update, context: CallbackContext):
     message = update.message
@@ -10,7 +10,7 @@ def forward_to_channel(update: Update, context: CallbackContext):
 def main():
     updater = Updater(token=os.getenv('BOT_TOKEN'), use_context=True)
     dp = updater.dispatcher
-    dp.add_handler(MessageHandler(Filters.text & (~Filters.command), forward_to_channel))
+    dp.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), forward_to_channel))
     updater.start_polling()
     updater.idle()
 
