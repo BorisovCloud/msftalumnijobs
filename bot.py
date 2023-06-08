@@ -1,20 +1,26 @@
 import os
-import asyncio
-from telegram import Update, Bot
-from telegram.ext import Updater, MessageHandler, filters, CallbackContext
+from telegram import Update
+from telegram.ext import (
+    Application,
+    MessageHandler,
+    filters,
+    CallbackContext,
+)
 
-def forward_to_channel(update: Update, context: CallbackContext):
+async def forward_to_channel(update: Update, context: CallbackContext):
     message = update.message
     if "#job" in message.text:
-        context.bot.forward_message(chat_id=os.getenv('CHANNEL_ID'), from_chat_id=message.chat_id, message_id=message.message_id)
+        await context.bot.forward_message(chat_id=os.getenv('CHANNEL_ID'), from_chat_id=message.chat_id, message_id=message.message_id)
 
-def main():
-    bot = Bot(token=os.getenv('BOT_TOKEN'))
-    updater = Updater(bot=bot, update_queue=asyncio.Queue())
-    dp = updater.dispatcher
-    dp.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), forward_to_channel))
-    updater.start_polling()
-    updater.idle()
+def main() -> None:
+    """Start the bot."""
+    # Create the Application and pass it your bot's token.
+    application = Application.builder().token(os.getenv('BOT_TOKEN')).build()
+
+    # Track messages in chat
+    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), forward_to_channel))
+
+    application.run_polling(allowed_updates=Update.MESSAGE)
 
 if __name__ == '__main__':
     main()
